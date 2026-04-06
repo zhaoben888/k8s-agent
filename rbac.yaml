@@ -1,0 +1,106 @@
+---
+# ServiceAccount for K8s Agent
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: k8s-agent
+  namespace: default
+
+---
+# ClusterRole - 节点级别的只读权限
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: k8s-agent-cluster-role
+rules:
+  # 读取节点信息
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch"]
+
+---
+# ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: k8s-agent-cluster-binding
+subjects:
+  - kind: ServiceAccount
+    name: k8s-agent
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: k8s-agent-cluster-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Role - default 命名空间的完整管理权限
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: k8s-agent-role
+  namespace: default
+rules:
+  # 管理 Pod
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch", "create", "delete", "patch", "update"]
+  
+  # 管理 Deployment
+  - apiGroups: ["apps"]
+    resources: ["deployments", "deployments/scale"]
+    verbs: ["get", "list", "watch", "create", "delete", "patch", "update"]
+  
+  # 管理 ReplicaSets (Deployment 依赖)
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
+  
+  # 管理命名空间（仅限 default）
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list"]
+
+---
+# RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: k8s-agent-binding
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: k8s-agent
+    namespace: default
+roleRef:
+  kind: Role
+  name: k8s-agent-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# 可选：允许创建命名空间的 ClusterRole
+# 注意：这会授予创建任意命名空间的权限，请谨慎使用
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: k8s-agent-namespace-admin
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "create", "delete"]
+
+---
+# 可选：ClusterRoleBinding for namespace admin
+# 如果需要 Agent 能够创建/删除命名空间，取消下面的注释
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: ClusterRoleBinding
+# metadata:
+#   name: k8s-agent-namespace-binding
+# subjects:
+#   - kind: ServiceAccount
+#     name: k8s-agent
+#     namespace: default
+# roleRef:
+#   kind: ClusterRole
+#   name: k8s-agent-namespace-admin
+#   apiGroup: rbac.authorization.k8s.io

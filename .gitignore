@@ -1,0 +1,19 @@
+# Python 虚拟环境（体积巨大，不上传）
+.venv/
+venv/
+env/
+
+# Python 编译缓存
+__pycache__/
+*.py[cod]
+*.pyo
+
+# IDE 配置文件
+.idea/
+.vscode/
+
+# 环境变量（含 API Key，绝对不能上传！）
+.env
+
+# 日志文件
+*.log

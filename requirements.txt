@@ -1,0 +1,10 @@
+langchain>=0.1.0
+langgraph>=0.0.30
+langchain-openai>=0.1.0
+langchain-core>=0.1.0
+kubernetes>=29.0.0
+requests>=2.30.0
+schedule>=1.2.0
+dingtalk-stream
+lark-oapi
+python-dotenv>=1.0.0
